@@ -1,4 +1,4 @@
-package w32testing
+package fileinfo
 
 import (
 	"fmt"

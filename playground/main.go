@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	w32testing "github.com/mvanwaaijen/fileinfo"
+	"github.com/mvanwaaijen/fileinfo"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	fi := w32testing.New(*filePath)
+	fi := fileinfo.New(*filePath)
 	fmt.Printf("Description : %v\n", fi.GetFileDesc())
 	fmt.Printf("File Version: %v\n", fi.GetFileVer())
 	fmt.Printf("Product Name: %v\n", fi.GetProdName())
