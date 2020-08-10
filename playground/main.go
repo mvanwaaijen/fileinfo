@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	filePath := flag.String("path", "", "specify file path to .exe or .dll to show file info.")
+	filePath := flag.String("path", "", "please specify file path to .exe or .dll to show file info.")
 	flag.Parse()
 	if filePath == nil || len(*filePath) == 0 {
 		flag.Usage()
