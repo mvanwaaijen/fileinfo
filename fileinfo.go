@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/gonutz/w32"
 )
@@ -15,6 +16,7 @@ type FileInfo struct {
 	fileName        string
 	fileVersionInfo []byte
 	translations    []string
+	stat            os.FileInfo
 }
 
 // New returns a new FileInfo object based on the specified file name path.
@@ -34,6 +36,17 @@ func New(path string) (*FileInfo, error) {
 			return nil, fmt.Errorf("no translations found")
 		}
 	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("unable to open file %q: %v", path, err)
+	}
+	defer f.Close()
+
+	s, err := f.Stat()
+	if err != nil {
+		return nil, fmt.Errorf("unable to get Stat info from file %q: %v", path, err)
+	}
+	fi.stat = s
 	return fi, nil
 }
 
@@ -44,6 +57,11 @@ func (fi *FileInfo) GetFileDesc() string {
 		return fixed
 	}
 	return "-"
+}
+
+// GetStat returns the os.FileInfo object from the file
+func (fi *FileInfo) GetStat() os.FileInfo {
+	return fi.stat
 }
 
 // GetFileVer returns the FileVersion property of the file or "-" if no ProductVersion property is found
