@@ -15,10 +15,11 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	fi := fileinfo.New(*filePath)
+	fi, _ := fileinfo.New(*filePath)
 	fmt.Printf("Description : %v\n", fi.GetFileDesc())
 	fmt.Printf("File Version: %v\n", fi.GetFileVer())
 	fmt.Printf("Product Name: %v\n", fi.GetProdName())
 	fmt.Printf("Prod Version: %v\n", fi.GetProdVer())
 	fmt.Printf("Org Filename: %v\n", fi.GetOrgName())
+	fmt.Printf("File Hash   : %v\n", fi.GetHash())
 }

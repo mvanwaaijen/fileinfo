@@ -1,7 +1,10 @@
 package fileinfo
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"log"
 
 	"github.com/gonutz/w32"
@@ -15,23 +18,23 @@ type FileInfo struct {
 }
 
 // New returns a new FileInfo object based on the specified file name path.
-func New(path string) *FileInfo {
+func New(path string) (*FileInfo, error) {
 	fi := &FileInfo{fileName: path}
 	size := w32.GetFileVersionInfoSize(path)
 	if size <= 0 {
-		panic(fmt.Sprintf("unable to get File Version Information from %q", path))
+		return nil, fmt.Errorf(fmt.Sprintf("unable to get File Version Information from %q", path))
 	}
 	fi.fileVersionInfo = make([]byte, size)
 	if ok := w32.GetFileVersionInfo(path, fi.fileVersionInfo); ok {
 		fi.translations, ok = w32.VerQueryValueTranslations(fi.fileVersionInfo)
 		if !ok {
-			panic("VerQueryValueTranslations failed")
+			return nil, fmt.Errorf("VerQueryValueTranslations failed")
 		}
 		if len(fi.translations) == 0 {
-			log.Fatalf("no translations found!")
+			return nil, fmt.Errorf("no translations found")
 		}
 	}
-	return fi
+	return fi, nil
 }
 
 // GetFileDesc returns the FileDescription property of the file or "-" if no FileDescription is found
@@ -87,4 +90,15 @@ func (fi *FileInfo) GetCustom(propName string) string {
 		return fixed
 	}
 	return "-"
+}
+
+// Hash returns the SHA256 hash of the file
+func (fi *FileInfo) GetHash() string {
+	hasher := sha256.New()
+	s, err := ioutil.ReadFile(fi.fileName)
+	hasher.Write(s)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return hex.EncodeToString(hasher.Sum(nil))
 }
