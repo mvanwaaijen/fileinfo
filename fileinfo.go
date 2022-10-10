@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"syscall"
+	"time"
 
 	"github.com/gonutz/w32"
 )
@@ -50,8 +52,8 @@ func New(path string) (*FileInfo, error) {
 	return fi, nil
 }
 
-// GetFileDesc returns the FileDescription property of the file or "-" if no FileDescription is found
-func (fi *FileInfo) GetFileDesc() string {
+// FileDescription returns the FileDescription property of the file or "-" if no FileDescription is found
+func (fi *FileInfo) FileDescription() string {
 	fixed, ok := w32.VerQueryValueString(fi.fileVersionInfo, fi.translations[0], w32.FileDescription)
 	if ok {
 		return fixed
@@ -59,13 +61,13 @@ func (fi *FileInfo) GetFileDesc() string {
 	return "-"
 }
 
-// GetStat returns the os.FileInfo object from the file
-func (fi *FileInfo) GetStat() os.FileInfo {
+// Stat returns the os.FileInfo object from the file
+func (fi *FileInfo) Stat() os.FileInfo {
 	return fi.stat
 }
 
-// GetFileVer returns the FileVersion property of the file or "-" if no ProductVersion property is found
-func (fi *FileInfo) GetFileVer() string {
+// FileVersion returns the FileVersion property of the file or "-" if no ProductVersion property is found
+func (fi *FileInfo) FileVersion() string {
 	fixed, ok := w32.VerQueryValueString(fi.fileVersionInfo, fi.translations[0], w32.FileVersion)
 	if ok {
 		return fixed
@@ -73,8 +75,8 @@ func (fi *FileInfo) GetFileVer() string {
 	return "-"
 }
 
-// GetProdVer returns the ProductVersion property of the file or "-" if no ProductVersion property is found
-func (fi *FileInfo) GetProdVer() string {
+// ProductVersion returns the ProductVersion property of the file or "-" if no ProductVersion property is found
+func (fi *FileInfo) ProductVersion() string {
 	fixed, ok := w32.VerQueryValueString(fi.fileVersionInfo, fi.translations[0], w32.ProductVersion)
 	if ok {
 		return fixed
@@ -82,8 +84,8 @@ func (fi *FileInfo) GetProdVer() string {
 	return "-"
 }
 
-// GetProdName returns the ProductName property of the file or "-" if no ProductName property is found
-func (fi *FileInfo) GetProdName() string {
+// ProductName returns the ProductName property of the file or "-" if no ProductName property is found
+func (fi *FileInfo) ProductName() string {
 	fixed, ok := w32.VerQueryValueString(fi.fileVersionInfo, fi.translations[0], "ProductName")
 	if ok {
 		return fixed
@@ -91,8 +93,8 @@ func (fi *FileInfo) GetProdName() string {
 	return "-"
 }
 
-// GetOrgName returns the OriginalFilename property of the file or "-" if no OriginalFilename property is found
-func (fi *FileInfo) GetOrgName() string {
+// OriginalFilename returns the OriginalFilename property of the file or "-" if no OriginalFilename property is found
+func (fi *FileInfo) OriginalFilename() string {
 	fixed, ok := w32.VerQueryValueString(fi.fileVersionInfo, fi.translations[0], w32.OriginalFilename)
 	if ok {
 		return fixed
@@ -100,9 +102,9 @@ func (fi *FileInfo) GetOrgName() string {
 	return "-"
 }
 
-// GetCustom returns the specified "propName" property of the file or "-" if the custom "propName" is not found.
+// Custom returns the specified "propName" property of the file or "-" if the custom "propName" is not found.
 // propName should not contain any space and individual words start with a capital letter, eg. "ProductName" for "Product name" property.
-func (fi *FileInfo) GetCustom(propName string) string {
+func (fi *FileInfo) Custom(propName string) string {
 	fixed, ok := w32.VerQueryValueString(fi.fileVersionInfo, fi.translations[0], propName)
 	if ok {
 		return fixed
@@ -111,7 +113,7 @@ func (fi *FileInfo) GetCustom(propName string) string {
 }
 
 // Hash returns the SHA256 hash of the file
-func (fi *FileInfo) GetHash() string {
+func (fi *FileInfo) Hash() string {
 	hasher := sha256.New()
 	s, err := ioutil.ReadFile(fi.fileName)
 	hasher.Write(s)
@@ -119,4 +121,10 @@ func (fi *FileInfo) GetHash() string {
 		log.Fatal(err)
 	}
 	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+// CreateTime returns the create time on windows systems
+func (fi *FileInfo) CreateTime() time.Time {
+	d := fi.stat.Sys().(*syscall.Win32FileAttributeData)
+	return time.Unix(0, d.CreationTime.Nanoseconds())
 }
